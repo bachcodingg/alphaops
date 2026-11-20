@@ -1,11 +1,4 @@
-# Local monitoring stack + the pipeline as an on-demand job.
-#
-#   docker compose up -d                                    # Pushgateway, Prometheus, Grafana
-#   docker compose run --rm pipeline ingest --source yahoo --universe config/universe_hose.csv
-#   docker compose run --rm pipeline batch examples/alphas.toml
-#
-# Grafana: http://localhost:3000 (anonymous viewer enabled for local use; admin/admin)
-# Prometheus: http://localhost:9090 (alerts tab shows the rules in deploy/prometheus)
+
 services:
   pipeline:
     build: .
