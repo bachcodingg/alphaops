@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "ruff>=0.6"
+      - run: ruff check src tests
+      - run: ruff format --check src tests
+      - name: shellcheck
+        run: shellcheck scripts/*.sh
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: pytest --cov --cov-report=term-missing --cov-fail-under=85
+
+  smoke:
+    # The same commands cron runs, end to end, on the deterministic synthetic market.
+    runs-on: ubuntu-latest
+    needs: test
+    env:
+      ALPHAOPS_DB: ${{ runner.temp }}/smoke.db
+      ALPHAOPS_METRICS_DIR: ${{ runner.temp }}/metrics
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install .
+      - name: ingest with injected anomalies (expects exit 3 = degraded)
+        run: |
+          set +e
+          alphaops ingest --source synthetic --anomalies --chaos 0.05 --no-alert
+          test $? -eq 3
+      - run: alphaops batch examples/alphas.toml --no-alert
+      - run: alphaops runs && alphaops quarantine list | head -20
+      - run: cat "$ALPHAOPS_METRICS_DIR"/*.prom | grep -E '^alphaops_job_status_code'
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t alphaops:ci .
+      - run: docker run --rm alphaops:ci ops | head -5
+      - run: docker compose config --quiet

@@ -1,0 +1,22 @@
+[Unit]
+Description=alphaops daily pipeline (ingest, evaluate, health)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=alphaops
+Group=alphaops
+WorkingDirectory=/opt/alphaops
+EnvironmentFile=-/opt/alphaops/.env
+ExecStart=/opt/alphaops/scripts/run_daily.sh
+# A hung upstream must not block tomorrow's run.
+TimeoutStartSec=45min
+Nice=10
+
+# Hardening: the job only needs to write its data and log directories.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/alphaops/data /opt/alphaops/logs

@@ -1,0 +1,12 @@
+# Install with:  crontab -e   (then paste), or: crontab deploy/cron/alphaops.crontab
+# Times are in the server's timezone. Set TZ so the schedule follows the Vietnamese market.
+CRON_TZ=Asia/Ho_Chi_Minh
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# Daily pipeline at 16:30 ICT, Monday-Friday (HOSE closes 14:45; vendor data settles later).
+30 16 * * 1-5  /opt/alphaops/scripts/run_daily.sh
+
+# Dead man's switch: hourly health check during working hours. A non-zero exit means cron
+# emails MAILTO (configure it) or hand it to your monitoring agent.
+0 8-20 * * 1-5  /opt/alphaops/.venv/bin/alphaops --db /opt/alphaops/data/alphaops.db health >/dev/null || echo "alphaops health check failed"

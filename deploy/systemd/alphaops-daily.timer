@@ -1,0 +1,19 @@
+[Unit]
+Description=Run the alphaops daily pipeline after the HOSE close
+
+[Timer]
+# 16:30 ICT (UTC+7) = 09:30 UTC, Monday-Friday.
+OnCalendar=Mon..Fri 09:30 UTC
+# If the machine was off at the scheduled time, run at next boot.
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target
+
+# Install:
+#   sudo cp deploy/systemd/alphaops-daily.* /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now alphaops-daily.timer
+# Inspect:
+#   systemctl list-timers alphaops-daily.timer
+#   journalctl -u alphaops-daily.service --since today
