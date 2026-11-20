@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Dependencies first so code changes don't invalidate the cached layer.
+
 COPY pyproject.toml README.md ./
 COPY src ./src
 RUN pip install .
