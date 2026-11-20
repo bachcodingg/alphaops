@@ -1,0 +1,53 @@
+# Example alpha library. Evaluate with:  alphaops batch examples/alphas.toml
+# These are textbook ideas for learning the workflow, not production signals.
+
+[defaults]
+delay = 1
+decay = 3
+neutralization = "market"
+truncation = 0.1
+cost_bps = 0.0
+
+[checks]
+min_sharpe = 1.0
+min_fitness = 0.5
+min_turnover = 0.01
+max_turnover = 0.7
+max_correlation = 0.7
+
+[[alpha]]
+name = "reversal_5d"
+description = "Short-term reversal: buy last week's losers, sell the winners."
+expression = "rank(-ts_delta(close, 5))"
+
+[[alpha]]
+name = "reversal_5d_sector"
+description = "Same idea, compared within sector so it is not a sector bet."
+expression = "group_neutralize(-ts_sum(returns, 5), sector)"
+neutralization = "sector"
+
+[[alpha]]
+name = "reversal_volume_confirmed"
+description = "Reversal weighted up when the move came on unusual volume."
+expression = """
+move = -ts_sum(returns, 5);
+surprise = volume / ts_mean(volume, 20);
+rank(move) * (surprise > 1.5 ? 1.5 : 1)
+"""
+
+[[alpha]]
+name = "low_volatility"
+description = "Prefer calm stocks (low-volatility anomaly)."
+expression = "rank(-ts_std(returns, 60))"
+decay = 10
+
+[[alpha]]
+name = "price_volume_divergence"
+description = "Negative price/volume correlation over two weeks."
+expression = "-ts_corr(rank(close), rank(volume), 10)"
+
+[[alpha]]
+name = "momentum_12_1"
+description = "Classic momentum: 12-month return skipping the last month."
+expression = "rank(ts_delay(close, 21) / ts_delay(close, 252) - 1)"
+decay = 5
