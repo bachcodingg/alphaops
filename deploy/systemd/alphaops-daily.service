@@ -14,7 +14,7 @@ ExecStart=/opt/alphaops/scripts/run_daily.sh
 TimeoutStartSec=45min
 Nice=10
 
-# Hardening: the job only needs to write its data and log directories.
+
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
