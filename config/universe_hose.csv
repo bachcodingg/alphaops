@@ -1,6 +1,4 @@
-# Liquid HOSE stocks, snapshot list (not point-in-time).
-# Caveat: a fixed list of today's large caps has survivorship bias for historical backtests.
-# Sector labels are coarse and maintained by hand.
+
 symbol,exchange,sector
 VCB,HOSE,Banks
 BID,HOSE,Banks
